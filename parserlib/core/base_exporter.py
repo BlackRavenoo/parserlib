@@ -13,9 +13,9 @@ class BaseExporter(ABC):
         work: WorkDescriptor,
         groups: list[ChunkGroup],
         output_path: Path
-    ) -> None:
+    ) -> Path:
         safe_work = replace(work, title=sanitize_filename(work.title))
-        self._export(work=safe_work, groups=groups, output_path=output_path)
+        return self._export(work=safe_work, groups=groups, output_path=output_path)
 
     @abstractmethod
     def _export(
@@ -23,5 +23,5 @@ class BaseExporter(ABC):
         work: WorkDescriptor,
         groups: list[ChunkGroup],
         output_path: Path
-    ) -> None:
+    ) -> Path:
         pass
