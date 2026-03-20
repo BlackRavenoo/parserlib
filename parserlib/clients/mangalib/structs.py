@@ -71,9 +71,5 @@ class ChapterData(Struct):
     teams: list[Team]
     pages: list[Page]
 
-    def __post__init__(self):
-        if self.name is None:
-            self.name = ""
-
 class MangaChapter(Struct):
     data: ChapterData

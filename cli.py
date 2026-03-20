@@ -51,27 +51,26 @@ def fetch(
             to_chapter = typer.prompt("To chapter index", type=int, default=total)
 
             if from_chapter < 1:
-                raise typer.BadParameter("--from must be >= 1")
+                raise typer.BadParameter("From must be >= 1")
 
             if from_chapter > to_chapter:
-                raise typer.BadParameter("--from cannot be greater than --to")
+                raise typer.BadParameter("From cannot be greater than to")
             if to_chapter > total:
                 raise typer.BadParameter(
-                    f"--to={to_chapter} is out of range, total chapters: {total}"
+                    f"to={to_chapter} is out of range, total chapters: {total}"
                 )
 
             plan = FetchPlan(
                 work=work,
-                from_chapter=from_chapter,
-                to_chapter=to_chapter,
+                from_chapter=from_chapter - 1,
+                to_chapter=to_chapter - 1,
             )
             groups = await client.fetch(plan)
 
         output.mkdir(parents=True, exist_ok=True)
-        exporter.export(work=work, groups=groups, output_path=output)
+        path = exporter.export(work=work, groups=groups, output_path=output)
 
-        typer.echo(f"Saved: {work.title}")
-        typer.echo(f"Format: {fmt.value}")
+        typer.echo(f"Saved: {str(path)}")
 
     asyncio.run(run())
 

@@ -6,8 +6,6 @@ from parserlib.core.models import ChunkGroup, WorkDescriptor
 from parserlib.core.paths import sanitize_filename
 
 class BaseExporter(ABC):
-    name: str
-
     def export(
         self,
         work: WorkDescriptor,
