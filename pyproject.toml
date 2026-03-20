@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "aiohttp>=3.13.3",
+    "ebooklib>=0.20",
     "fpdf2>=2.8.7",
     "msgspec>=0.20.0",
     "pillow>=12.1.1",

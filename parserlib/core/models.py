@@ -34,4 +34,5 @@ class ImageChunk(DataChunk):
 @dataclass
 class ChunkGroup:
     id: int
+    title: str
     chunks: list[DataChunk]
