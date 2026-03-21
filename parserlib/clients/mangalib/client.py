@@ -7,6 +7,7 @@ from pyrate_limiter.extras.aiohttp_limiter import RateLimitedSession
 
 from parserlib.clients.mangalib.structs import Chapter, ChapterData, Manga, MangaChapter, MangaChapters, MangaData
 from parserlib.core.base_client import BaseClient
+from parserlib.core.callback import ProgressCallback
 from parserlib.core.exceptions import SlugNotFound
 from parserlib.core.models import ChapterEntry, ChunkGroup, FetchPlan, ImageChunk, WorkDescriptor
 
@@ -95,14 +96,16 @@ class MangalibClient(BaseClient):
             ]
         )
 
-    async def _fetch(self, plan: FetchPlan) -> list[ChunkGroup]:
+    async def _fetch(self, plan: FetchPlan, progress_callback: ProgressCallback) -> list[ChunkGroup]:
         slug = plan.work.slug
 
         selected_chapters = plan.work.chapters[
             plan.from_chapter:plan.to_chapter + 1
         ]
 
-        async def fetch_chapter(chapter: ChapterEntry) -> ChunkGroup:
+        chapters_count = len(selected_chapters)
+
+        async def fetch_chapter(idx: int, chapter: ChapterEntry) -> ChunkGroup:
             chapter_data = await self._get_chapter_data(slug, chapter.key)
 
             async def fetch_page(page_index: int, page) -> ImageChunk:
@@ -122,13 +125,19 @@ class MangalibClient(BaseClient):
 
             chunks.sort(key=lambda chunk: chunk.id)
 
+            progress_callback(chapter.id, chapters_count, chapter.title)
+
             return ChunkGroup(
                 id=chapter.id,
+                title=chapter.title,
                 chunks=chunks
             )
 
-        chapter_tasks = [fetch_chapter(chapter) for chapter in selected_chapters]
-        groups = await asyncio.gather(*chapter_tasks)
+        groups = []
+
+        for i, chapter in enumerate(selected_chapters):
+            res = await fetch_chapter(i, chapter)
+            groups.append(res)
 
         groups.sort(key=lambda group: group.id)
         return groups

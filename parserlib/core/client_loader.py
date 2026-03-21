@@ -42,6 +42,6 @@ def load_clients_from_dir(clients_dir: Path) -> dict[str, type[BaseClient]]:
 
     return ClientRegistry.all()
 
-def load_builtin_clients() -> dict[str, type[BaseClient]]:
+def load_clients() -> dict[str, type[BaseClient]]:
     clients_dir = Path(__file__).resolve().parents[1] / "clients"
     return load_clients_from_dir(clients_dir)

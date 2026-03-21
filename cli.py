@@ -1,17 +1,32 @@
-import typer
 import asyncio
 from pathlib import Path
 
-from parserlib.core.client_loader import load_builtin_clients
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn
+import typer
+
+from parserlib.core.client_loader import load_clients
 from parserlib.core.exporters import ExporterKind, create_exporter, list_exporter_names
 from parserlib.core.models import FetchPlan
 from parserlib.core.registry import ClientRegistry
 
 app = typer.Typer(no_args_is_help=True)
 
+class CliProgressCallback:
+    def __init__(self, progress: Progress, task_id: int):
+        self.progress = progress
+        self.task_id = task_id
+
+    def __call__(self, current: int, total: int, title: str):
+        self.progress.update(
+            self.task_id,
+            completed=current,
+            total=total,
+            description=title
+        )
+
 @app.callback()
 def bootstrap() -> None:
-    load_builtin_clients()
+    load_clients()
 
 @app.command("list-sites")
 def list_sites():
@@ -65,7 +80,17 @@ def fetch(
                 from_chapter=from_chapter - 1,
                 to_chapter=to_chapter - 1,
             )
-            groups = await client.fetch(plan)
+            with Progress(
+                SpinnerColumn(),
+                "[progress.description]{task.description}",
+                BarColumn(),
+                TaskProgressColumn(),
+            ) as progress:
+                task_id = progress.add_task("Parsing...", total=None)
+
+                callback = CliProgressCallback(progress, task_id)
+
+                groups = await client.fetch(plan, callback)
 
         output.mkdir(parents=True, exist_ok=True)
         path = exporter.export(work=work, groups=groups, output_path=output)

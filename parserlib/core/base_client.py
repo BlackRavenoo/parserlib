@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Union
 
+from parserlib.core.callback import ProgressCallback
 from parserlib.core.models import ChunkGroup, FetchPlan, WorkDescriptor
 
 class BaseClient(ABC):
@@ -12,11 +13,11 @@ class BaseClient(ABC):
         pass
 
     @abstractmethod
-    async def _fetch(self, plan: FetchPlan) -> list[ChunkGroup]:
+    async def _fetch(self, plan: FetchPlan, progress_callback: ProgressCallback) -> list[ChunkGroup]:
         pass
 
-    async def fetch(self, plan: FetchPlan) -> list[ChunkGroup]:
-        groups = await self._fetch(plan)
+    async def fetch(self, plan: FetchPlan, progress_callback: ProgressCallback) -> list[ChunkGroup]:
+        groups = await self._fetch(plan, progress_callback)
         
         groups.sort(key=lambda group: group.id)
         
