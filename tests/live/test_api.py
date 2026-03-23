@@ -20,6 +20,10 @@ def init_clients():
         pytest.param(
             "https://mangalib.org/ru/manga/1064--kono-subarashii-sekai-ni-shukufuku-o",
             id="mangalib.org",
+        ),
+        pytest.param(
+            "https://ranobelib.me/ru/book/12021--kono-subarashii-sekai-ni-shukufuku-wo",
+            id="ranobelib.me"
         )
     ]
 )
