@@ -43,7 +43,7 @@ def list_formats():
 @app.command("fetch")
 def fetch(
     url: str = typer.Argument(help="Resource URL"),
-    fmt: ExporterKind = typer.Option(ExporterKind.PDF, "--format", case_sensitive=False, help="Export format"),
+    fmt: ExporterKind = typer.Option(ExporterKind.PDF, "--format", case_sensitive=False, show_choices=True, help="Export format"),
     output: Path = typer.Option(Path("."), "--output", help="Output directory"),
 ):
     async def run() -> None:

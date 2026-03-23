@@ -21,7 +21,7 @@ class PdfExporter(BaseExporter):
         pdf = FPDF()
         pdf.set_auto_page_break(auto=False)
         pdf.set_margins(0, 0, 0)
-        pdf.set_font("Arial", size=12)
+        pdf.set_font("Helvetica", size=12)
 
         first_page = True
         for group in groups:
