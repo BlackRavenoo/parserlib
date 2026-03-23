@@ -125,7 +125,7 @@ class MangalibClient(BaseClient):
 
             chunks.sort(key=lambda chunk: chunk.id)
 
-            progress_callback(chapter.id, chapters_count, chapter.title)
+            progress_callback(idx, chapters_count, chapter.title)
 
             return ChunkGroup(
                 id=chapter.id,
