@@ -182,7 +182,7 @@ class RanobelibClient(BaseClient):
             if isinstance(content, str):
                 chunks = await self._parse_html_to_chunks(content)
             elif isinstance(content, dict):
-                return self._parse_prosemirror_to_chunks(content)
+                return await self._parse_prosemirror_to_chunks(content)
             else:
                 print(f"Something went wrong on chapter with id = {idx}")
                 chunks = []

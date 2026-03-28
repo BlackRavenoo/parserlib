@@ -33,3 +33,4 @@ uv run cli.py fetch <ссылка> --format fb2
 
 TODO:
 - [ ] Добавить логирование ошибок
+- [ ] Улучшить настройку rate limit
