@@ -24,7 +24,7 @@ class Team(Struct):
 
 class Branch(Struct):
     id: int
-    branch_id: None # | another_type
+    branch_id: None | int
     teams: list[Team]
 
 class Chapter(Struct):
