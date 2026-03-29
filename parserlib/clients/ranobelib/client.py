@@ -2,8 +2,6 @@ import asyncio
 import re
 
 from msgspec.json import decode
-from pyrate_limiter import Duration, Limiter, Rate
-from pyrate_limiter.extras.aiohttp_limiter import RateLimitedSession
 from selectolax.lexbor import LexborHTMLParser
 
 from parserlib.clients.mangalib.structs import Chapter, Manga, MangaChapters, MangaData
@@ -11,6 +9,7 @@ from parserlib.clients.ranobelib.structs import ChapterData, RanobeChapter
 from parserlib.core.base_client import BaseClient
 from parserlib.core.callback import ProgressCallback
 from parserlib.core.exceptions import SlugNotFound
+from parserlib.core.http_client import HttpClient
 from parserlib.core.models import ChapterEntry, ChunkGroup, DataChunk, FetchPlan, ImageChunk, TextChunk, WorkDescriptor
 
 HEADERS = {
@@ -37,22 +36,12 @@ class RanobelibClient(BaseClient):
     ]
 
     def __init__(self):
-        self.client = RateLimitedSession(
-            Limiter(
-                Rate(
-                    limit=90,
-                    interval=Duration.MINUTE
-                ),
-            ),
-            headers=HEADERS
-        )
+        self.http = HttpClient(headers=HEADERS)
 
         self.api_url = "https://api.cdnlibs.org/api/manga"
 
     async def _request_bytes(self, url: str) -> bytes:
-        resp = await self.client.get(url)
-        resp.raise_for_status()
-        return await resp.read()
+        return await self.http.request_bytes(url)
 
     async def _get_ranobe(self, slug: str) -> MangaData:
         raw = await self._request_bytes(f"{self.api_url}/{slug}?fields[]=teams")
@@ -182,7 +171,7 @@ class RanobelibClient(BaseClient):
             if isinstance(content, str):
                 chunks = await self._parse_html_to_chunks(content)
             elif isinstance(content, dict):
-                return await self._parse_prosemirror_to_chunks(content)
+                chunks = await self._parse_prosemirror_to_chunks(content)
             else:
                 print(f"Something went wrong on chapter with id = {idx}")
                 chunks = []
@@ -205,6 +194,4 @@ class RanobelibClient(BaseClient):
         return groups
         
     async def close(self):
-        session = getattr(self.client, "_session", None)
-        if session is not None and not session.closed:
-            await session.close()
+        await self.http.close()

@@ -2,13 +2,12 @@ import asyncio
 import re
 
 from msgspec.json import decode
-from pyrate_limiter import Duration, Limiter, Rate
-from pyrate_limiter.extras.aiohttp_limiter import RateLimitedSession
 
 from parserlib.clients.mangalib.structs import Chapter, ChapterData, Manga, MangaChapter, MangaChapters, MangaData
 from parserlib.core.base_client import BaseClient
 from parserlib.core.callback import ProgressCallback
 from parserlib.core.exceptions import SlugNotFound
+from parserlib.core.http_client import HttpClient
 from parserlib.core.models import ChapterEntry, ChunkGroup, FetchPlan, ImageChunk, WorkDescriptor
 
 HEADERS = {
@@ -36,23 +35,13 @@ class MangalibClient(BaseClient):
     ]
 
     def __init__(self):
-        self.client = RateLimitedSession(
-            Limiter(
-                Rate(
-                    limit=90,
-                    interval=Duration.MINUTE
-                ),
-            ),
-            headers=HEADERS
-        )
+        self.http = HttpClient(headers=HEADERS)
 
         self.api_url = "https://api.cdnlibs.org/api/manga"
         self.image_url = "https://img3.mixlib.me"
 
     async def _request_bytes(self, url: str) -> bytes:
-        resp = await self.client.get(url)
-        resp.raise_for_status()
-        return await resp.read()
+        return await self.http.request_bytes(url)
 
     async def _get_manga(self, slug: str) -> MangaData:
         raw = await self._request_bytes(f"{self.api_url}/{slug}?fields[]=teams")
@@ -143,6 +132,4 @@ class MangalibClient(BaseClient):
         return groups
         
     async def close(self):
-        session = getattr(self.client, "_session", None)
-        if session is not None and not session.closed:
-            await session.close()
+        await self.http.close()
