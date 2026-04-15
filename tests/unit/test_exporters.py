@@ -8,6 +8,7 @@ import pytest
 
 from parserlib.core.exporters import ExporterKind, create_exporter
 from parserlib.core.models import ChunkGroup, ImageChunk, TextChunk, WorkDescriptor
+from parserlib.exporters.epub import EpubExporter
 from parserlib.exporters.fb2 import XLINK_NS
 
 def _local_name(tag: str) -> str:
@@ -128,3 +129,51 @@ def test_pdf_export_creates_valid_pdf_header(
     content = result.read_bytes()
     assert content.startswith(b"%PDF")
     assert len(content) > 200
+
+def test_epub_append_adds_only_missing_chapters(
+    tmp_path,
+    make_work,
+    payload,
+):
+    exporter = EpubExporter()
+    work = make_work("EPUB append")
+
+    initial_groups = [
+        ChunkGroup(
+            id=1,
+            title="Chapter 1",
+            chunks=[TextChunk(id=1, text="chapter 1 text"), ImageChunk(id=2, payload=payload)],
+        )
+    ]
+    file_path = exporter.export(work=work, groups=initial_groups, output_path=tmp_path)
+
+    assert exporter.get_downloaded_chapter_ids(file_path) == {1}
+
+    groups_to_append = [
+        ChunkGroup(
+            id=1,
+            title="Chapter 1 duplicate",
+            chunks=[TextChunk(id=1, text="should not be appended")],
+        ),
+        ChunkGroup(
+            id=2,
+            title="Chapter 2",
+            chunks=[TextChunk(id=1, text="chapter 2 text")],
+        ),
+    ]
+
+    exporter.append(work=work, groups=groups_to_append, file_path=file_path)
+
+    with ZipFile(file_path) as archive:
+        names = archive.namelist()
+        chapter_1 = [name for name in names if name.endswith("chapter_1.xhtml")]
+        chapter_2 = [name for name in names if name.endswith("chapter_2.xhtml")]
+
+        chapter_1_content = archive.read(chapter_1[0]).decode("utf-8")
+        chapter_2_content = archive.read(chapter_2[0]).decode("utf-8")
+
+    assert len(chapter_1) == 1
+    assert len(chapter_2) == 1
+    assert "chapter 1 text" in chapter_1_content
+    assert "should not be appended" not in chapter_1_content
+    assert "chapter 2 text" in chapter_2_content

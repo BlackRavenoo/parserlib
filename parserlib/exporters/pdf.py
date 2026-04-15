@@ -12,6 +12,8 @@ PAGE_WIDTH_MM = 210
 MAX_PAGE_HEIGHT_MM = 5000
 
 class PdfExporter(BaseExporter):
+    supports_append = False
+
     def _export(
         self,
         work: WorkDescriptor,

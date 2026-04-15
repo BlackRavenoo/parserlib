@@ -9,6 +9,8 @@ FB2_NS = "http://www.gribuser.ru/xml/fictionbook/2.0"
 XLINK_NS = "http://www.w3.org/1999/xlink"
 
 class Fb2Exporter(BaseExporter):
+    supports_append = False
+
     def _export(
         self,
         work: WorkDescriptor,
