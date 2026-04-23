@@ -61,7 +61,7 @@ class CliProgressCallback:
             self.task_id,
             completed=current,
             total=total,
-            description=title
+            description=title,
         )
 
 @app.callback()
@@ -209,5 +209,5 @@ def fetch(
 
     asyncio.run(run())
 
-if __name__ == "__main__":
+def main() -> None:
     app()

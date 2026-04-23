@@ -13,8 +13,29 @@ dependencies = [
     "pyrate-limiter>=4.0.2",
     "requests>=2.32.5",
     "selectolax>=0.4.7",
+]
+
+[project.optional-dependencies]
+cli = [
     "typer>=0.24.1",
 ]
+tui = [
+    "rich>=14.3.3",
+]
+
+[project.scripts]
+parserlib = "cli:main"
+parserlib-tui = "tui:main"
+
+[build-system]
+requires = ["setuptools>=82", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["cli", "tui"]
+
+[tool.setuptools.packages.find]
+include = ["parserlib*"]
 
 [dependency-groups]
 dev = [
