@@ -38,7 +38,10 @@ class MangalibClient(BaseClient):
         self.http = HttpClient(headers=HEADERS)
 
         self.api_url = "https://api.cdnlibs.org/api/manga"
-        self.image_url = "https://img3.mixlib.me"
+        self.image_urls = [
+            "https://img2.mixlib.me",
+            "https://img3.mixlib.me",
+        ]
 
     async def _request_bytes(self, url: str) -> bytes:
         return await self.http.request_bytes(url)
@@ -56,7 +59,17 @@ class MangalibClient(BaseClient):
         return decode(raw, type=MangaChapter).data
     
     async def _get_image(self, url: str) -> bytes:
-        return await self._request_bytes(f"{self.image_url}{url}")
+        last_exc: Exception | None = None
+        for base in self.image_urls:
+            try:
+                return await self._request_bytes(f"{base}{url}")
+            except Exception as e:
+                last_exc = e
+                continue
+
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("Failed to fetch image: no CDN hosts configured")
 
     async def inspect(self, url: str) -> WorkDescriptor:
         result = re.search(
